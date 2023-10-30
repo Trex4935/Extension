@@ -62,6 +62,18 @@ public class Falcon {
         return createFalcon(id, defaultConfig, false);
     }
 
+    //
+    /**
+     * create a CANTalon with the default (out of the box) configuration
+     *
+     * @param id
+     *                    CAN ID of the motor to configure
+     * 
+     * @param invertMotor
+     *                    If motor direction should be inverted
+     * 
+     * @return Configured WPI_TalonFX motor
+     */
     public static WPI_TalonFX createDefaultFalcon(int id, boolean invertMotor) {
         return createFalcon(id, defaultConfig, invertMotor);
     }
@@ -80,21 +92,25 @@ public class Falcon {
     public static WPI_TalonFX createFalcon(int id, DefaultConfiguration config, boolean invertMotor) {
         WPI_TalonFX falcon = new WPI_TalonFX(id);
 
+        // Set to default and config the basics
         falcon.configFactoryDefault();
         falcon.setInverted(invertMotor);
         falcon.set(ControlMode.PercentOutput, 0.0);
         falcon.setNeutralMode(config.neutralMode);
         falcon.configOpenloopRamp(config.openLoopRamp);
 
+        // set nominal and peak output
         falcon.configNominalOutputForward(config.nominalOutputForward);
         falcon.configNominalOutputReverse(config.nominalOutputReverse);
-
         falcon.configPeakOutputForward(config.peakOutputForward);
         falcon.configPeakOutputReverse(config.peakOutputReverse);
 
+        // setup supply current limit
         falcon.configSupplyCurrentLimit(config.currLimitCfg);
 
+        // Setup sensor
         falcon.configIntegratedSensorInitializationStrategy(config.sensorInitializationStrategy);
+        falcon.setSelectedSensorPosition(0);
 
         // Configured encoder based limit switch
         falcon.configForwardSoftLimitEnable(config.enableSoftLimit);
@@ -102,7 +118,6 @@ public class Falcon {
         falcon.configForwardSoftLimitThreshold(config.forwardSoftLimit);
         falcon.configReverseSoftLimitThreshold(config.reverseSoftLimit);
 
-        falcon.setSelectedSensorPosition(0);
         // Return the configured motor object
         return falcon;
     }

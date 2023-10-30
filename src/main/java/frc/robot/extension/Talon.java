@@ -53,6 +53,18 @@ public class Talon {
         return createTalon(id, defaultConfig, false);
     }
 
+    //
+    /**
+     * create a CANTalon with the default (out of the box) configuration
+     *
+     * @param id
+     *                    CAN ID of the motor to configure
+     * 
+     * @param invertMotor
+     *                    If motor direction should be inverted
+     * 
+     * @return Configured WPI_TalonFX motor
+     */
     public static WPI_TalonSRX createDefaultTalon(int id, boolean invertMotor) {
         return createTalon(id, defaultConfig, invertMotor);
     }
