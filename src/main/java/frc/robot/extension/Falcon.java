@@ -22,7 +22,7 @@ public class Falcon {
         public double neutralDeadband = 0.04;
 
         // Motor ramp when using open loop
-        public double openLoopRamp = 0.1;
+        public double openLoopRamp = 0;
 
         // Set motor limits
         //// normal output forward and reverse = 0% ... i.e. stopped
@@ -59,7 +59,11 @@ public class Falcon {
      * @return Configured WPI_TalonFX motor
      */
     public static WPI_TalonFX createDefaultFalcon(int id) {
-        return createFalcon(id, defaultConfig);
+        return createFalcon(id, defaultConfig, false);
+    }
+
+    public static WPI_TalonFX createDefaultFalcon(int id, boolean invertMotor) {
+        return createFalcon(id, defaultConfig, invertMotor);
     }
 
     /**
@@ -73,10 +77,11 @@ public class Falcon {
      * 
      * @return Configured WPI_TalonFX motor
      */
-    public static WPI_TalonFX createFalcon(int id, DefaultConfiguration config) {
+    public static WPI_TalonFX createFalcon(int id, DefaultConfiguration config, boolean invertMotor) {
         WPI_TalonFX falcon = new WPI_TalonFX(id);
 
         falcon.configFactoryDefault();
+        falcon.setInverted(invertMotor);
         falcon.set(ControlMode.PercentOutput, 0.0);
         falcon.setNeutralMode(config.neutralMode);
         falcon.configOpenloopRamp(config.openLoopRamp);

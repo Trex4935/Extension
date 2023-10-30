@@ -72,6 +72,7 @@ public class Talon {
         WPI_TalonSRX talon = new WPI_TalonSRX(id);
 
         talon.configFactoryDefault();
+        talon.setInverted(invertMotor);
         talon.set(ControlMode.PercentOutput, 0.0);
         talon.setNeutralMode(config.neutralMode);
         talon.configOpenloopRamp(config.openLoopRamp);
