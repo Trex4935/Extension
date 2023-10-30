@@ -20,7 +20,6 @@ public class Talon {
         // Input dead band
         public double neutralDeadband = 0.04;
 
-        
         // Motor ramp when using open loop
         public double openLoopRamp = 0;
 
@@ -33,7 +32,7 @@ public class Talon {
         public double peakOutputForward = 1;
         public double peakOutputReverse = -1;
 
-        public boolean enableCurrentLimit = false;
+        public boolean enableCurrentLimit = true;
         public SupplyCurrentLimitConfiguration currLimitCfg = new SupplyCurrentLimitConfiguration(enableCurrentLimit,
                 20, 60, 0.2);
 
@@ -51,7 +50,11 @@ public class Talon {
      * @return Configured WPI_TalonFX motor
      */
     public static WPI_TalonSRX createDefaultTalon(int id) {
-        return createTalon(id, defaultConfig);
+        return createTalon(id, defaultConfig, false);
+    }
+
+    public static WPI_TalonSRX createDefaultTalon(int id, boolean invertMotor) {
+        return createTalon(id, defaultConfig, invertMotor);
     }
 
     /**
@@ -65,7 +68,7 @@ public class Talon {
      * 
      * @return Configured WPI_TalonFX motor
      */
-    public static WPI_TalonSRX createTalon(int id, DefaultConfiguration config) {
+    public static WPI_TalonSRX createTalon(int id, DefaultConfiguration config, Boolean invertMotor) {
         WPI_TalonSRX talon = new WPI_TalonSRX(id);
 
         talon.configFactoryDefault();
@@ -73,29 +76,17 @@ public class Talon {
         talon.setNeutralMode(config.neutralMode);
         talon.configOpenloopRamp(config.openLoopRamp);
 
+        // Configure output nominal and peak
         talon.configNominalOutputForward(config.nominalOutputForward);
         talon.configNominalOutputReverse(config.nominalOutputReverse);
-
         talon.configPeakOutputForward(config.peakOutputForward);
         talon.configPeakOutputReverse(config.peakOutputReverse);
 
-        talon.configSupplyCurrentLimit(config.currLimitCfg);
+        // Configure current limits
+        talon.configSupplyCurrentLimit(defaultConfig.currLimitCfg);
 
-       
-        talon.configPeakCurrentLimit(15);
-		talon.configPeakCurrentDuration(0);
-		talon.configContinuousCurrentLimit(10);
-
-        boolean _currentLimEn = true;
-       
-		talon.enableCurrentLimit(_currentLimEn); // Honor initial setting
-
-		/* setup a basic closed loop */
-    
-		talon.setNeutralMode(NeutralMode.Brake); // Netural Mode override 
-        talon.configSelectedFeedbackSensor(  FeedbackDevice.QuadEncoder, 0,0);      
-
-        /* Ensure Sensor is in phase, else closed loop will not work.
+        /*
+         * Ensure Sensor is in phase, else closed loop will not work.
          * Positive Sensor should match Motor Positive output (Green LED)
          */
         talon.setSensorPhase(true);
