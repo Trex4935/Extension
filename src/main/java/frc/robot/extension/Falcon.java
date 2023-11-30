@@ -13,6 +13,7 @@ public class Falcon {
 
     private static final int kTimeout = 20;
 
+    // Default configuration profile for a falcon
     public static class DefaultConfiguration {
 
         // Set Motor Brake mode
@@ -33,6 +34,7 @@ public class Falcon {
         public double peakOutputForward = 1;
         public double peakOutputReverse = -1;
 
+        // Current limit controls
         public boolean enableCurrentLimit = false;
         public SupplyCurrentLimitConfiguration currLimitCfg = new SupplyCurrentLimitConfiguration(enableCurrentLimit,
                 20, 60, .2);
@@ -79,7 +81,7 @@ public class Falcon {
     }
 
     /**
-     * Configures a Falcon with MotionMagic configuration
+     * Configures a Falcon with a configuration
      *
      * @param id
      *               CAN ID of the motor to configure
