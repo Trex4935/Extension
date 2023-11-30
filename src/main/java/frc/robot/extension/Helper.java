@@ -32,7 +32,15 @@ public class Helper {
 
     }
 
-    // https://stackoverflow.com/questions/45316947/converting-between-180-180-to-0-360
+    //
+    /**
+     * Converts an angle from a range of -180 to 180 into a range of 0 to 360
+     *
+     * @param angle
+     *                Angle to convert
+     *  
+     * @return Double between 0 and 360
+     */
     public static double ConvertTo360(double angle) {
         return (angle + 360) % 360;
     }
