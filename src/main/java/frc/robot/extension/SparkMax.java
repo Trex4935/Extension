@@ -8,11 +8,11 @@ import com.revrobotics.SparkMaxPIDController.AccelStrategy;
 
 public class SparkMax {
     /**
-     * Creates a default CAN brushless SparkMax motor. Brushless is the one we use
-     * most often.
+     * Creates a default CAN Brushless SparkMax motor.
      * 
      * @param CANID CAN ID of the sparkmax.
-     * @return
+     * 
+     * @return CANSparkMax motor object
      */
     public static CANSparkMax createDefaultCANSparkMax(int CANID) {
         CANSparkMax sparkValue = new CANSparkMax(CANID, CANSparkMaxLowLevel.MotorType.kBrushless);
