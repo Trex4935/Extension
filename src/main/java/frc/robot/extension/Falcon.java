@@ -4,20 +4,29 @@
 
 package frc.robot.extension;
 
-import com.ctre.phoenix.motorcontrol.*;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.ctre.phoenix.sensors.SensorInitializationStrategy;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 
 /** Add your docs here. */
 public class Falcon {
 
-    private static final int kTimeout = 20;
+    private static final double kTimeout = 0.020;
 
     // Default configuration profile for a falcon
     public static class DefaultConfiguration {
 
+        // private static final String NeutralMode = null;
+
+        // private static final String SensorInitializationStrategy = null;
+
         // Set Motor Brake mode
-        public NeutralMode neutralMode = NeutralMode.Brake;
+        public NeutralModeValue neutralMode = NeutralModeValue.Brake;
 
         // Input dead band
         public double neutralDeadband = 0.04;
@@ -36,16 +45,24 @@ public class Falcon {
 
         // Current limit controls
         public boolean enableCurrentLimit = false;
-        public SupplyCurrentLimitConfiguration currLimitCfg = new SupplyCurrentLimitConfiguration(enableCurrentLimit,
-                20, 60, .2);
+        public CurrentLimitsConfigs currLimitCfg = new CurrentLimitsConfigs()
+            .withSupplyCurrentLimitEnable(enableCurrentLimit)
+            .withSupplyCurrentLimit(20)
+            .withSupplyCurrentThreshold(60)
+            .withSupplyTimeThreshold(0.2);
 
-        // When setting up the sensor boot to a value of zero
-        public SensorInitializationStrategy sensorInitializationStrategy = SensorInitializationStrategy.BootToZero;
 
         // Encoder based limit switches
+        public SoftwareLimitSwitchConfigs softwareLimSwitchCfg = new SoftwareLimitSwitchConfigs()
+        .withForwardSoftLimitEnable(enableCurrentLimit)
+        .withForwardSoftLimitThreshold(0)
+        .withReverseSoftLimitEnable(enableCurrentLimit)
+        .withReverseSoftLimitThreshold(0);
         public boolean enableSoftLimit = false;
         public int forwardSoftLimit = 0;
         public int reverseSoftLimit = 0;
+
+
 
     }
 
@@ -58,9 +75,11 @@ public class Falcon {
      * @param id
      *           CAN ID of the motor to configure
      * 
-     * @return Configured WPI_TalonFX motor
+     * @return Configured TalonFX motor
      */
-    public static WPI_TalonFX createDefaultFalcon(int id) {
+
+
+    public static TalonFX createDefaultFalcon(int id) {
         return createFalcon(id, defaultConfig, false);
     }
 
@@ -74,9 +93,9 @@ public class Falcon {
      * @param invertMotor
      *                    If motor direction should be inverted
      * 
-     * @return Configured WPI_TalonFX motor
+     * @return Configured TalonFX motor
      */
-    public static WPI_TalonFX createDefaultFalcon(int id, boolean invertMotor) {
+    public static TalonFX createDefaultFalcon(int id, boolean invertMotor) {
         return createFalcon(id, defaultConfig, invertMotor);
     }
 
@@ -89,36 +108,31 @@ public class Falcon {
      * @param config
      *               Config object to use to set values on the motor
      * 
-     * @return Configured WPI_TalonFX motor
+     * @return Configured TalonFX motor
      */
-    public static WPI_TalonFX createFalcon(int id, DefaultConfiguration config, boolean invertMotor) {
-        WPI_TalonFX falcon = new WPI_TalonFX(id);
+    public static TalonFX createFalcon(int id, DefaultConfiguration config, boolean invertMotor) {
+        TalonFX falcon = new TalonFX(id);
 
         // Set to default and config the basics
-        falcon.configFactoryDefault();
+        falcon.getConfigurator().apply(new TalonFXConfiguration());
+
         falcon.setInverted(invertMotor);
-        falcon.set(ControlMode.PercentOutput, 0.0);
+        falcon.setControl(new VoltageOut(0));
         falcon.setNeutralMode(config.neutralMode);
-        falcon.configOpenloopRamp(config.openLoopRamp);
+        falcon.getConfigurator().apply(new OpenLoopRampsConfigs().withVoltageOpenLoopRampPeriod(config.openLoopRamp));
+        
 
         // set nominal and peak output
-        falcon.configNominalOutputForward(config.nominalOutputForward);
-        falcon.configNominalOutputReverse(config.nominalOutputReverse);
-        falcon.configPeakOutputForward(config.peakOutputForward);
-        falcon.configPeakOutputReverse(config.peakOutputReverse);
+       
 
         // setup supply current limit
-        falcon.configSupplyCurrentLimit(config.currLimitCfg);
+        falcon.getConfigurator().apply(config.currLimitCfg);
 
         // Setup sensor
-        falcon.configIntegratedSensorInitializationStrategy(config.sensorInitializationStrategy);
-        falcon.setSelectedSensorPosition(0);
+        falcon.setPosition(0);
 
         // Configured encoder based limit switch
-        falcon.configForwardSoftLimitEnable(config.enableSoftLimit);
-        falcon.configReverseSoftLimitEnable(config.enableSoftLimit);
-        falcon.configForwardSoftLimitThreshold(config.forwardSoftLimit);
-        falcon.configReverseSoftLimitThreshold(config.reverseSoftLimit);
+        falcon.getConfigurator().apply(config.softwareLimSwitchCfg);
 
         // Return the configured motor object
         return falcon;
@@ -128,7 +142,7 @@ public class Falcon {
      * Configures a Falcon with a PID configuration in the 0 slot
      *
      * @param motorObject
-     *                    WPI_TalonFX object to configure
+     *                    TalonFX object to configure
      * @param kP
      *                    Double value of kP portion of PID
      * 
@@ -142,21 +156,21 @@ public class Falcon {
      *                    Double value of KF portion of PID
      * 
      * 
-     * @return Configured WPI_TalonFX motor with PID in ID 0
+     * @return Configured TalonFX motor with PID in ID 0
      */
-    public static WPI_TalonFX configurePID(WPI_TalonFX motorObject, double kP, double kI, double kD, double kF) {
+    public static TalonFX configurePID(TalonFX motorObject, double kP, double kI, double kD, double kF) {
 
         // PID configs
         // setting up the pid
-        motorObject.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, 0, kTimeout);
         // Set kP(proportional); kI(Integral); kD(differential); kF(FeedForward)
-        motorObject.config_kP(0, kP, kTimeout);
-        motorObject.config_kI(0, kI, kTimeout);
-        motorObject.config_kD(0, kD, kTimeout);
-        motorObject.config_kF(0, kF, kTimeout);
+        Slot0Configs slot0Configs = new Slot0Configs();
+        slot0Configs.kV = kF;
+        slot0Configs.kP = kP;
+        slot0Configs.kI = kI;
+        slot0Configs.kD = kD;
 
-        motorObject.config_IntegralZone(0, 0, kTimeout);
-
+        // apply gains, 50 ms total timeout
+        motorObject.getConfigurator().apply(slot0Configs, kTimeout);
         return motorObject;
     }
 
@@ -164,7 +178,7 @@ public class Falcon {
      * Configures a Falcon with MotionMagic configuration
      *
      * @param motorObject
-     *                       WPI_TalonFX object to configure
+     *                       TalonFX object to configure
      * @param kP
      *                       Double value of kP portion of PID
      * 
@@ -183,9 +197,9 @@ public class Falcon {
      * @param Acceleration
      *                       Double acceleration to get to cruise speed
      * 
-     * @return Configured WPI_TalonFX motor
+     * @return Configured TalonFX motor
      */
-    public static WPI_TalonFX configMotionMagic(WPI_TalonFX motorObject, double kP, double kI, double kD, double kF,
+    /* public static TalonFX configMotionMagic(TalonFX motorObject, double kP, double kI, double kD, double kF,
             double CruiseVelocity, double Acceleration) {
 
         // Auxilary motor
@@ -194,23 +208,23 @@ public class Falcon {
         motorObject.configNeutralDeadband(0.001, kTimeout);
         motorObject.configOpenloopRamp(0);
 
-        /* Set Motion Magic gains in slot0 - see documentation */
+        // Set Motion Magic gains in slot0 - see documentation
         motorObject.selectProfileSlot(0, 0);
         motorObject.config_kF(0, kF, kTimeout);
         motorObject.config_kP(0, kP, kTimeout);
         motorObject.config_kI(0, kI, kTimeout);
         motorObject.config_kD(0, kD, kTimeout);
 
-        /* Set acceleration and vcruise velocity - see documentation */
+        // Set acceleration and vcruise velocity - see documentation
         motorObject.configMotionCruiseVelocity(CruiseVelocity, kTimeout);
         motorObject.configMotionAcceleration(Acceleration, kTimeout);
 
-        /* Zero the sensor once on robot boot up */
+        // Zero the sensor once on robot boot up
         motorObject.setSelectedSensorPosition(0, 0, kTimeout);
 
-        /* integral Zone */
+        // integral Zone
         motorObject.config_IntegralZone(0, 200);
 
         return motorObject;
-    }
+    } */
 }

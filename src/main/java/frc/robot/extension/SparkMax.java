@@ -1,10 +1,10 @@
 package frc.robot.extension;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.SparkMaxPIDController;
-import com.revrobotics.CANSparkMax.IdleMode;
-import com.revrobotics.SparkMaxPIDController.AccelStrategy;
+import com.revrobotics.CANSparkLowLevel;
+import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.IdleMode;
+import com.revrobotics.SparkPIDController.AccelStrategy;
 
 public class SparkMax {
     /**
@@ -15,7 +15,7 @@ public class SparkMax {
      * @return CANSparkMax motor object
      */
     public static CANSparkMax createDefaultCANSparkMax(int CANID) {
-        CANSparkMax sparkValue = new CANSparkMax(CANID, CANSparkMaxLowLevel.MotorType.kBrushless);
+        CANSparkMax sparkValue = new CANSparkMax(CANID, CANSparkLowLevel.MotorType.kBrushless);
         sparkValue.setIdleMode(IdleMode.kBrake);
         return sparkValue;
     }
@@ -46,7 +46,7 @@ public class SparkMax {
             double kFF, double minVelocity, double maxVelocity, double maxAcceleration, double error) {
 
         /* Creates a PID controller for the SparkMax. */
-        SparkMaxPIDController SparkMaxPID = motorObject.getPIDController();
+        SparkPIDController SparkMaxPID = motorObject.getPIDController();
 
         /* Enables SmartMotion for the PID controller */
         SparkMaxPID.setReference(0, CANSparkMax.ControlType.kSmartMotion, 0);
